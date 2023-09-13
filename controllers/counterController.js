@@ -30,6 +30,7 @@ const addCounter = asyncHandler(async (type) => {
 
   const newCounter = await Counter.create({
     type,
+    counter: 1,
   });
 
   return {
