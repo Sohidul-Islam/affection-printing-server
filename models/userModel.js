@@ -25,6 +25,10 @@ const userSchema = mongoose.Schema(
       required: [true, "Please provide phone"],
       unique: true,
     },
+    image: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

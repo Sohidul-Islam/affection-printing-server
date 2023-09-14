@@ -100,7 +100,7 @@ const getUser = asyncHandler(async (req, res) => {
 // @route: POST /api/user
 // @access: private
 const addUser = asyncHandler(async (req, res) => {
-  const { name, address, vatNo, email, phone } = req.body;
+  const { name, address, vatNo, email, phone, image } = req.body;
 
   if (!name || !address || !phone) {
     res.status(400);
@@ -114,6 +114,10 @@ const addUser = asyncHandler(async (req, res) => {
 
   if (vatNo) {
     data = { ...data, vatNo };
+  }
+
+  if (image) {
+    data = { ...data, image };
   }
 
   newUser = await User.create({ name, address, phone, ...data });
@@ -136,7 +140,7 @@ const updateUser = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
-  const { name, address, vatNo, email, phone } = req.body;
+  const { name, address, vatNo, email, phone, image } = req.body;
 
   let data = {};
 
@@ -146,6 +150,10 @@ const updateUser = asyncHandler(async (req, res) => {
 
   if (vatNo) {
     data = { ...data, vatNo };
+  }
+
+  if (image) {
+    data = { ...data, image };
   }
 
   const updatedUser = await User.findByIdAndUpdate(req.params.id, {
