@@ -11,6 +11,14 @@ const transactionSchema = mongoose.Schema(
       type: String,
       default: "",
     },
+    type: {
+      type: String,
+      enum: {
+        values: ["advance", "payment"],
+        message: "{VALUE} is not supported",
+      },
+      default: "",
+    },
     payment: {
       type: Number,
       default: 0,

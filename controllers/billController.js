@@ -5,6 +5,9 @@ const User = require("../models/userModel");
 const moment = require("moment/moment");
 const { isValidObjectId } = require("mongoose");
 const { addAndRemoveBillHandler, populateBills } = require("./helpersForBill");
+const {
+  makePaymentAdvanceWithPayment,
+} = require("./helpers/helpersForTransaction");
 const ObjectId = require("mongodb").ObjectId;
 
 // @desc: get bill
@@ -161,6 +164,11 @@ const addBill = asyncHandler(async (req, res) => {
     date: moment(dateString, format).toDate(),
   });
 
+  if (advance > 0)
+    await makePaymentAdvanceWithPayment(user, "advance", advance);
+  if (payment > 0)
+    await makePaymentAdvanceWithPayment(user, "payment", payment);
+
   const populatebill = await newbill.populate("user");
 
   res.status(200).json({
@@ -234,6 +242,11 @@ const updateBill = asyncHandler(async (req, res) => {
     payment,
     date: moment(dateString, format).toDate(),
   }).populate("user");
+
+  if (advance > 0 && existingbill?.advance !== advance)
+    await makePaymentAdvanceWithPayment(user, "advance", advance);
+  if (payment > 0 && existingbill?.payment !== payment)
+    await makePaymentAdvanceWithPayment(user, "payment", payment);
 
   res.status(200).json({
     status: true,

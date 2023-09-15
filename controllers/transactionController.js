@@ -67,7 +67,7 @@ const getTransactions = asyncHandler(async (req, res) => {
 });
 
 const makeTransaction = asyncHandler(async (req, res) => {
-  const { user, payment } = req.body;
+  const { user, payment, type = "payment" } = req.body;
 
   const getCounter = await incrementByOneCounterByType("transaction");
 
@@ -78,6 +78,7 @@ const makeTransaction = asyncHandler(async (req, res) => {
   const createTransaction = await Transaction.create({
     user: new ObjectId(user),
     payment,
+    type,
     transactionId,
   });
 
