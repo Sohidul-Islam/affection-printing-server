@@ -4,7 +4,10 @@ const { incrementByOneCounterByType } = require("./counterController");
 const User = require("../models/userModel");
 const moment = require("moment/moment");
 const { isValidObjectId } = require("mongoose");
-const { addAndRemoveBillHandler, populateBills } = require("./helpersForBill");
+const {
+  addAndRemoveBillHandler,
+  populateBills,
+} = require("./helpers/helpersForBill");
 const {
   makePaymentAdvanceWithPayment,
 } = require("./helpers/helpersForTransaction");
@@ -148,6 +151,31 @@ const addBill = asyncHandler(async (req, res) => {
 
   const populatedBill = await populateBills(objectIdDues);
 
+  let advanceTrx;
+  let paymentTrx;
+
+  if (advance > 0)
+    advanceTrx = await makePaymentAdvanceWithPayment(
+      user,
+      "advance",
+      advance,
+      "newTnx"
+    );
+  if (payment > 0)
+    paymentTrx = await makePaymentAdvanceWithPayment(
+      user,
+      "payment",
+      payment,
+      "newTnx"
+    );
+
+  console.log("advanceTrx paymentTrx", advanceTrx, "paymentTrx", paymentTrx);
+
+  if (advanceTrx?.status === false || paymentTrx?.status === false) {
+    res.status(400);
+    res.json({ status: false, message: "transaction couldn't created" });
+  }
+
   const newbill = await Bill.create({
     user: new ObjectId(user),
     bills: bills,
@@ -161,13 +189,13 @@ const addBill = asyncHandler(async (req, res) => {
     billNo: getCounter?.counter?.counter,
     isDistinct,
     payment,
+    paymentTrx: [
+      new ObjectId(advanceTrx?.transaction?._id),
+      new ObjectId(paymentTrx?.transaction?._id),
+    ],
+
     date: moment(dateString, format).toDate(),
   });
-
-  if (advance > 0)
-    await makePaymentAdvanceWithPayment(user, "advance", advance);
-  if (payment > 0)
-    await makePaymentAdvanceWithPayment(user, "payment", payment);
 
   const populatebill = await newbill.populate("user");
 
@@ -228,6 +256,30 @@ const updateBill = asyncHandler(async (req, res) => {
 
   const populatedBill = await populateBills(objectIdDues);
 
+  let advanceTrx;
+  let paymentTrx;
+  if (advance > 0 && existingbill?.advance !== advance)
+    advanceTrx = await makePaymentAdvanceWithPayment(
+      user,
+      "advance",
+      advance,
+      existingbill?.paymentTrx[0]
+    );
+  if (payment > 0 && existingbill?.payment !== payment)
+    paymentTrx = await makePaymentAdvanceWithPayment(
+      user,
+      "payment",
+      payment,
+      existingbill?.paymentTrx[1]
+    );
+
+  console.log("advanceTrx paymentTrx", advanceTrx, paymentTrx);
+
+  if (advanceTrx?.status === false || paymentTrx?.status === false) {
+    res.status(400);
+    res.json({ status: false, message: "transaction couldn't created" });
+  }
+
   const updatedbill = await Bill.findByIdAndUpdate(req.params.id, {
     user: new ObjectId(user),
     bills: bills,
@@ -240,13 +292,12 @@ const updateBill = asyncHandler(async (req, res) => {
     totalAmount: totalAmount,
     isDistinct,
     payment,
+    paymentTrx: [
+      new ObjectId(advanceTrx?.transaction?._id),
+      new ObjectId(paymentTrx?.transaction?._id),
+    ],
     date: moment(dateString, format).toDate(),
   }).populate("user");
-
-  if (advance > 0 && existingbill?.advance !== advance)
-    await makePaymentAdvanceWithPayment(user, "advance", advance);
-  if (payment > 0 && existingbill?.payment !== payment)
-    await makePaymentAdvanceWithPayment(user, "payment", payment);
 
   res.status(200).json({
     status: true,

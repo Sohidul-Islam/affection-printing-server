@@ -1,9 +1,10 @@
 const asyncHandler = require("express-async-handler");
-const Bill = require("../models/billModel");
-const { incrementByOneCounterByType } = require("./counterController");
-const User = require("../models/userModel");
+const Bill = require("../../models/billModel");
+const { incrementByOneCounterByType } = require("../counterController");
+const User = require("../../models/userModel");
 const moment = require("moment/moment");
 const { isValidObjectId } = require("mongoose");
+const { makePaymentAdvanceWithPayment } = require("./helpersForTransaction");
 const ObjectId = require("mongodb").ObjectId;
 
 const addAndRemoveBillHandler = asyncHandler(
@@ -109,6 +110,17 @@ const payBillByTransaction = asyncHandler(async (userId, paid) => {
     convertedDue.map((dueBill) => {
       const dueAmount =
         dueBill?.totalAmount - dueBill?.advance - dueBill?.payment;
+      let tnx;
+      if (dueBill?.payment > 0) {
+        makePaymentAdvanceWithPayment(
+          dueBill?.user,
+          "payment",
+          dueBill?.payment,
+          dueBill?.paymentTrx[1],
+          dueBill?._id
+        );
+      }
+
       const updateObject = {
         due: dueAmount,
         prevDue: dueAmount,
@@ -117,7 +129,7 @@ const payBillByTransaction = asyncHandler(async (userId, paid) => {
       };
 
       return Bill.updateOne(
-        { _id: dueBill._id }, // Match document with the provided ID
+        { _id: dueBill?._id }, // Match document with the provided ID
         { $set: updateObject } // Update the specified field with distinct value
       );
     })

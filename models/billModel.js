@@ -67,6 +67,12 @@ const billsSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    paymentTrx: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "transaction",
+      default: [],
+    },
   },
   {
     timestamps: true,

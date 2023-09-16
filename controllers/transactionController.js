@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { incrementByOneCounterByType } = require("./counterController");
 const moment = require("moment/moment");
 const { isValidObjectId } = require("mongoose");
-const { payBillByTransaction } = require("./helpersForBill");
+const { payBillByTransaction } = require("./helpers/helpersForBill");
 const ObjectId = require("mongodb").ObjectId;
 const Transaction = require("../models/transactionModel");
 
@@ -71,26 +71,22 @@ const makeTransaction = asyncHandler(async (req, res) => {
 
   const getCounter = await incrementByOneCounterByType("transaction");
 
-  const transactionId = `AFF${moment(new Date()).format("DDMMYYYY")}${
-    getCounter?.counter?.counter
-  }`;
+  // const transactionId = `AFF${moment(new Date()).format("DDMMYYYY")}${
+  //   getCounter?.counter?.counter
+  // }`;
 
-  const createTransaction = await Transaction.create({
-    user: new ObjectId(user),
-    payment,
-    type,
-    transactionId,
-  });
+  // const createTransaction = await Transaction.create({
+  //   user: new ObjectId(user),
+  //   payment,
+  //   type,
+  //   transactionId,
+  // });
 
   const updatedBill = await payBillByTransaction(user, payment);
-
-  createTransaction.populate("user");
 
   res.status(200).json({
     status: true,
     message: "Transaction Created Successfully",
-    transaction: createTransaction,
-    updatedBill,
   });
 });
 
