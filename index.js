@@ -22,6 +22,7 @@ app.use("/api", require("./routes/userRoute"));
 app.use("/api", require("./routes/challanRoute"));
 app.use("/api", require("./routes/billRoute"));
 app.use("/api", require("./routes/transactionRoute"));
+app.use("/api", require("./routes/quotationRoute"));
 
 app.use(errorHandler);
 
