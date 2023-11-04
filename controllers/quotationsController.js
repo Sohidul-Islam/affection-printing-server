@@ -157,7 +157,7 @@ const getQuotationsData = asyncHandler(async (req, res) => {
 // @route: POST /api/quotation/:id
 // @access: private
 const addQuotation = asyncHandler(async (req, res) => {
-  const { user, subject, quotations, date } = req.body;
+  const { user, subject, quotations, date, note } = req.body;
 
   const dateString = date;
   const format = "DD/MM/YYYY";
@@ -181,6 +181,7 @@ const addQuotation = asyncHandler(async (req, res) => {
     quotations: quotations,
     subject,
     date: moment(dateString, format).toDate(),
+    note,
   });
 
   const populatedQuotation = await newQuotation.populate("user");
@@ -198,7 +199,7 @@ const addQuotation = asyncHandler(async (req, res) => {
 const updateQuotation = asyncHandler(async (req, res) => {
   const existingQuotation = await Quotation.findById(req.params.id);
 
-  const { user, subject, quotations, date } = req.body;
+  const { user, subject, quotations, date, note } = req.body;
 
   const dateString = date;
   const format = "DD/MM/YYYY";
@@ -220,6 +221,7 @@ const updateQuotation = asyncHandler(async (req, res) => {
     quotations: quotations,
     subject,
     date: moment(dateString, format).toDate(),
+    note,
   }).populate("user");
 
   res.status(200).json({
@@ -230,6 +232,7 @@ const updateQuotation = asyncHandler(async (req, res) => {
       quotations,
       subject,
       date: moment(dateString, format).toDate(),
+      note,
     },
   });
 });

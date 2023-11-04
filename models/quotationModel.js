@@ -26,6 +26,10 @@ const quotationSchema = mongoose.Schema(
       required: [true, "Please add a quotation"],
       default: [],
     },
+    note: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
