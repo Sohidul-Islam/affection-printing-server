@@ -46,7 +46,6 @@ const getDashboard = asyncHandler(async (req, res) => {
       bills: getBills,
       challans: getChallans,
       quotations: getQuotations,
-      totalPayment: 0,
     },
   });
 });
