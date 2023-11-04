@@ -111,6 +111,75 @@ const getBills = asyncHandler(async (req, res) => {
   });
 });
 
+const getBillsData = asyncHandler(async (req, res) => {
+  // @data filter key
+  const { searchKey, startDate, endDate, sortBy, userId } = req.query;
+
+  const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+
+  const pageSize = parseInt(req.query.pageSize) || 0; // Default to 10 documents per page
+
+  // Calculate the number of documents to skip based on the current page and pageSize
+  const skipDocuments = (page - 1) * pageSize;
+
+  let filters = {};
+
+  if (startDate && endDate) {
+    filters.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  }
+
+  if (searchKey) {
+    filters["bills.desc"] = { $regex: new RegExp(searchKey, "i") };
+  }
+
+  if (userId) {
+    filters["user"] = userId;
+  }
+
+  const filteredData = await Bill.find(filters)
+    .sort({
+      billNo: sortBy === "asc" ? 1 : -1,
+    })
+    .populate("user")
+    .populate("dues")
+    .exec();
+  // .limit(pageSize)
+  // .skip(skipDocuments)
+  // .exec();
+
+  const convertedFilteredData = filteredData.map((bill) => {
+    const updatedDues = bill?.dues?.map((dueBill) => {
+      const totalDue =
+        dueBill?.totalAmount - dueBill?.advance - dueBill?.payment;
+
+      return { ...dueBill?._doc, due: totalDue };
+    });
+
+    return { ...bill?._doc, dues: updatedDues };
+  });
+
+  const totalCount = convertedFilteredData?.length || 0; // Get the total count of documents
+
+  // Calculate the total number of pages based on the pageSize
+  const totalPages = pageSize > 0 ? Math.ceil(totalCount / pageSize) : 1;
+
+  const paginatedbills =
+    pageSize > 0
+      ? convertedFilteredData?.slice(skipDocuments, skipDocuments + pageSize)
+      : convertedFilteredData;
+
+  return {
+    bills: paginatedbills,
+    totalBills: totalCount,
+    paginatedData: {
+      totalData: totalCount,
+      page,
+      pageSize,
+      totalPages,
+    },
+  };
+});
+
 // @desc: add bill
 // @route: POST /api/bill/:id
 // @access: private
@@ -397,6 +466,55 @@ const getDues = asyncHandler(async (req, res) => {
   });
 });
 
+const getDuesData = asyncHandler(async (req, res) => {
+  /*
+  isDistinct - true||false
+  */
+  const { userId, isDistinct, ignoreBill, alreadyAdded } = req.query;
+  const filter = {};
+
+  filter.$or = [{ prevDue: { $gt: 0 } }, { due: { $gt: 0 } }];
+  // filter.prevDue = { $gt: 0 };
+  // filter.due = { $gt: 0 };
+  if (isDistinct !== undefined) {
+    filter.isDistinct = isDistinct;
+  }
+
+  if (alreadyAdded !== undefined) {
+    filter.alreadyAdded = alreadyAdded;
+  }
+
+  if (ignoreBill) {
+    filter._id = { $ne: ignoreBill };
+  }
+
+  if (isValidObjectId(userId)) {
+    filter.user = userId;
+  }
+
+  const dues = await Bill.find(filter).sort({ date: -1 }).populate("user");
+
+  const totalDues = dues.reduce((prev, item) => {
+    const totalDue = item?.totalAmount - item?.advance - item?.payment;
+
+    return prev + totalDue;
+  }, 0);
+
+  const convertedDue = dues?.map((bill) => {
+    const totalDue = bill?.totalAmount - bill?.advance - bill?.payment;
+
+    return { ...bill?._doc, due: totalDue };
+  });
+
+  return {
+    // test: dues,
+    summery: {
+      totalDues: totalDues,
+    },
+    dues: convertedDue,
+  };
+});
+
 module.exports = {
   getBill,
   getBills,
@@ -404,4 +522,6 @@ module.exports = {
   updateBill,
   deleteBill,
   getDues,
+  getDuesData,
+  getBillsData,
 };

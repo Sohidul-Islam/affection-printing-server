@@ -99,6 +99,68 @@ const getChallans = asyncHandler(async (req, res) => {
   });
 });
 
+const getChallansData = asyncHandler(async (req, res) => {
+  // @data filter key
+  const { searchKey, startDate, endDate, sortBy, userId } = req.query;
+
+  const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+
+  const pageSize = parseInt(req.query.pageSize) || 0; // Default to 10 documents per page
+
+  // Calculate the number of documents to skip based on the current page and pageSize
+  const skipDocuments = (page - 1) * pageSize;
+
+  let filters = {};
+
+  if (startDate && endDate) {
+    filters.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  }
+
+  if (searchKey) {
+    filters.$or = [
+      { "challans.desc": { $regex: new RegExp(searchKey, "i") } }, // Case-insensitive search
+    ];
+
+    filters.$or = !isNaN(parseInt(searchKey, 10))
+      ? [...filters.$or, { challanNo: parseInt(searchKey, 10) }]
+      : [...filters.$or];
+  }
+
+  if (userId) {
+    filters["user"] = userId;
+  }
+
+  const filteredData = await Challan.find(filters)
+    .sort({
+      challanNo: sortBy === "asc" ? 1 : -1,
+    })
+    .populate("user");
+  // .limit(pageSize)
+  // .skip(skipDocuments)
+  // .exec();
+
+  const totalCount = filteredData?.length || 0; // Get the total count of documents
+
+  // Calculate the total number of pages based on the pageSize
+  const totalPages = pageSize > 0 ? Math.ceil(totalCount / pageSize) : 1;
+
+  const paginatedChallans =
+    pageSize > 0
+      ? filteredData?.slice(skipDocuments, skipDocuments + pageSize)
+      : filteredData;
+
+  return {
+    challans: paginatedChallans,
+    totalChallan: totalCount,
+    paginatedData: {
+      totalData: totalCount,
+      page,
+      pageSize,
+      totalPages,
+    },
+  };
+});
+
 // @desc: add challan
 // @route: POST /api/challan/:id
 // @access: private
@@ -206,4 +268,5 @@ module.exports = {
   addChallan,
   updateChallan,
   deleteChallan,
+  getChallansData,
 };
