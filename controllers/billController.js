@@ -11,6 +11,7 @@ const {
 const {
   makePaymentAdvanceWithPayment,
 } = require("./helpers/helpersForTransaction");
+const { deleteTransactionGlobal } = require("./transactionController");
 const ObjectId = require("mongodb").ObjectId;
 
 // @desc: get bill
@@ -59,7 +60,19 @@ const getBills = asyncHandler(async (req, res) => {
   }
 
   if (searchKey) {
-    filters["bills.desc"] = { $regex: new RegExp(searchKey, "i") };
+    filters.$or = [
+      { "bills.desc": { $regex: new RegExp(searchKey, "i") } }, // Case-insensitive search
+    ];
+
+    filters.$or = !isNaN(parseInt(searchKey, 10))
+      ? [
+          ...filters.$or,
+          { billNo: parseInt(searchKey, 10) },
+          { payment: parseInt(searchKey, 10) },
+          { advance: parseInt(searchKey, 10) },
+          { totalAmount: parseInt(searchKey, 10) },
+        ]
+      : [...filters.$or];
   }
 
   if (userId) {
@@ -400,6 +413,11 @@ const deleteBill = asyncHandler(async (req, res) => {
     res.status(400);
     res.json({ status: false, message: "Bill not found." });
   }
+
+  Promise.all([
+    deleteTransactionGlobal(existingbill?.paymentTrx[0]),
+    deleteTransactionGlobal(existingbill?.paymentTrx[1]),
+  ]);
 
   await existingbill.deleteOne();
 

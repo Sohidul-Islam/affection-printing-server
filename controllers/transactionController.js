@@ -172,9 +172,22 @@ const deleteTransaction = asyncHandler(async (req, res) => {
   });
 });
 
+const deleteTransactionGlobal = asyncHandler(async (trxId) => {
+  const existingTransaction = await Transaction.findById(trxId);
+
+  if (!existingTransaction) {
+    return false;
+  }
+
+  await existingTransaction.deleteOne();
+
+  return true;
+});
+
 module.exports = {
   makeTransaction,
   getTransactions,
   deleteTransaction,
   getTransactionsData,
+  deleteTransactionGlobal,
 };

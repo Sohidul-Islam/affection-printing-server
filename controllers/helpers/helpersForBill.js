@@ -110,7 +110,7 @@ const payBillByTransaction = asyncHandler(async (userId, paid) => {
     convertedDue.map((dueBill) => {
       const dueAmount =
         dueBill?.totalAmount - dueBill?.advance - dueBill?.payment;
-      let tnx;
+
       if (dueBill?.payment > 0) {
         makePaymentAdvanceWithPayment(
           dueBill?.user,
