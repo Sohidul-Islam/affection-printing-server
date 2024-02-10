@@ -7,15 +7,16 @@ const {
   deleteBill,
   getDues,
 } = require("../controllers/billController");
+const { authenticateToken } = require("../controllers/adminController");
 
 const router = express.Router();
 
 router
-  .get("/bill/dues", getDues)
-  .get("/bill/:id", getBill)
-  .get("/bill", getBills)
-  .post("/bill", addBill)
-  .put("/bill/:id", updateBill)
-  .delete("/bill/:id", deleteBill);
+  .get("/bill/dues", authenticateToken, getDues)
+  .get("/bill/:id", authenticateToken, getBill)
+  .get("/bill", authenticateToken, getBills)
+  .post("/bill", authenticateToken, addBill)
+  .put("/bill/:id", authenticateToken, updateBill)
+  .delete("/bill/:id", authenticateToken, deleteBill);
 
 module.exports = router;

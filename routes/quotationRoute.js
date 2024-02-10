@@ -6,14 +6,15 @@ const {
   updateQuotation,
   deleteQuotation,
 } = require("../controllers/quotationsController");
+const { authenticateToken } = require("../controllers/adminController");
 
 const router = express.Router();
 
 router
-  .get("/quotation/:id", getQuotation)
-  .get("/quotation", getQuotations)
-  .post("/quotation", addQuotation)
-  .put("/quotation/:id", updateQuotation)
-  .delete("/quotation/:id", deleteQuotation);
+  .get("/quotation/:id", authenticateToken, getQuotation)
+  .get("/quotation", authenticateToken, getQuotations)
+  .post("/quotation", authenticateToken, addQuotation)
+  .put("/quotation/:id", authenticateToken, updateQuotation)
+  .delete("/quotation/:id", authenticateToken, deleteQuotation);
 
 module.exports = router;
