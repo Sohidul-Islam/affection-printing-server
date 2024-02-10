@@ -13,7 +13,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const adminToken = process.env.TOKEN_ACCESS_JWT;
+const adminToken = jwt.sign({ foo: "bar" }, "shhhhh");
 
 const passwordKey = "passwordSecurity";
 
