@@ -13,7 +13,9 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const adminToken = jwt.sign({ foo: "bar" }, "shhhhh");
+const adminToken = jwt.sign({ foo: "bar" }, "shhhhh", {
+  expiresIn: "6004800s",
+});
 
 const passwordKey = "passwordSecurity";
 
