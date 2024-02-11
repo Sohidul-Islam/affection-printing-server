@@ -24,21 +24,31 @@ function generateAccessToken(name, email, _id) {
 }
 
 // verify token
-const authenticateToken = asyncHandler((req, res, next) => {
+function authenticateToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (token == null) {
-    throw new Error("Authentication failed!");
-  }
+  if (token == null)
+    return res.status(200).json({
+      success: false,
+      message: "Error!Token was not provided.",
+    });
 
-  const isVerified = jwt.verify(token, adminToken);
-  console.log({ isVerified });
+  jwt.verify(token, adminToken, (err, user) => {
+    console.log({ err, user });
 
-  req.user = isVerified;
+    if (err)
+      return res.status(200).json({
+        success: false,
+        message: "Invalid Token.",
+      });
 
-  next();
-});
+    console.log("Granted");
+    req.user = user;
+
+    next();
+  });
+}
 
 const getEncryptedPassword = (password) => {
   const encryptedPassword = encryptpwd.encrypt(password, passwordKey);
