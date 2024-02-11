@@ -29,7 +29,7 @@ function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(" ")[1];
 
   if (token == null)
-    return res.status(200).json({
+    return res.status(401).json({
       success: false,
       message: "Error!Token was not provided.",
     });
@@ -38,7 +38,7 @@ function authenticateToken(req, res, next) {
     console.log({ err, user });
 
     if (err)
-      return res.status(200).json({
+      return res.status(403).json({
         success: false,
         message: "Invalid Token.",
       });
