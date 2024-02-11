@@ -36,7 +36,8 @@ const authenticateToken = asyncHandler((req, res, next) => {
   console.log({ isVerified });
 
   req.user = isVerified;
-  res.status(200).send("Access granted");
+
+  next();
 });
 
 const getEncryptedPassword = (password) => {
