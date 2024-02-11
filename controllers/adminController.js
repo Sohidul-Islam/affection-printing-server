@@ -230,7 +230,7 @@ const addAdmin = asyncHandler(async (req, res) => {
     status: true,
     message: `Created new user successfully`,
     admin: {
-      ...admins,
+      ...admins?._doc,
       password: getEncryptedPassword(admins?._doc?.password),
     },
   });
@@ -276,7 +276,7 @@ const updateAdmin = asyncHandler(async (req, res) => {
     status: true,
     message: "Admin updated successfully.",
     admin: {
-      ...updatedAdmin,
+      ...updatedAdmin?._doc,
       password: getEncryptedPassword(updatedAdmin?._doc?.password),
     },
   });
