@@ -25,21 +25,22 @@ function generateAccessToken(name, email, _id) {
 
 // verify token
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
 
-  if (token == null) return res.sendStatus(401);
+    if (token == null) {
+      throw new Error("Authentication failed!");
+    }
 
-  jwt.verify(token, adminToken, (err, user) => {
-    console.log({ err, user });
+    const isVerified = jwt.verify(token, adminToken);
+    console.log({ isVerified });
 
-    if (err) return res.sendStatus(403);
-
-    console.log("Granted");
-    req.user = user;
-
+    req.user = isVerified;
     next();
-  });
+  } catch (error) {
+    res.status(400).send("Invalid token !");
+  }
 }
 
 const getEncryptedPassword = (password) => {
