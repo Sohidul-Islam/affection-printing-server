@@ -20,7 +20,7 @@ const adminToken = jwt.sign({ foo: "bar" }, "shhhhh", {
 const passwordKey = "passwordSecurity";
 
 function generateAccessToken(name, email, _id) {
-  return jwt.sign({ name, email, _id }, adminToken, { expiresIn: "604800s" });
+  return jwt.sign({ name, email, _id }, "shhhhh", { expiresIn: "30 days" });
 }
 
 // verify token
@@ -34,7 +34,7 @@ function authenticateToken(req, res, next) {
       message: "Error!Token was not provided.",
     });
 
-  jwt.verify(token, adminToken, (err, user) => {
+  jwt.verify(token, "shhhhh", (err, user) => {
     console.log({ err, user });
 
     if (err)
