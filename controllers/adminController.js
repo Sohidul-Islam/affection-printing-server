@@ -24,24 +24,20 @@ function generateAccessToken(name, email, _id) {
 }
 
 // verify token
-function authenticateToken(req, res, next) {
-  try {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+const authenticateToken = asyncHandler((req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
-    if (token == null) {
-      throw new Error("Authentication failed!");
-    }
-
-    const isVerified = jwt.verify(token, adminToken);
-    console.log({ isVerified });
-
-    req.user = isVerified;
-    next();
-  } catch (error) {
-    res.status(400).send("Invalid token !");
+  if (token == null) {
+    throw new Error("Authentication failed!");
   }
-}
+
+  const isVerified = jwt.verify(token, adminToken);
+  console.log({ isVerified });
+
+  req.user = isVerified;
+  res.status(200).send("Access granted");
+});
 
 const getEncryptedPassword = (password) => {
   const encryptedPassword = encryptpwd.encrypt(password, passwordKey);
